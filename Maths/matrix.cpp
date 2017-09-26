@@ -1,3 +1,8 @@
+/*
+ note to self  - runs on ideone.com 
+ not on system compiler due to some stack overflow issue
+*/
+
 const ll N=205;
 
 struct matrix{
