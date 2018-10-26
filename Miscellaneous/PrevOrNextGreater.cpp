@@ -1,17 +1,37 @@
-// for every ith element stores the index of prev/nextGreater element in the array
-// if no prevGreater, prevGreater[i]=-1
-// if no nextGreater, nextGreater[i]=n
-void calculate(const vector<int>& a) {
-	int n=(int)a.size();
-	vi prevGreater(n, -1), nextGreater(n, n), stck;
+/*
+Lmn[i] = index upto which ith element is the minimum (on the left side)
+Lmx[i] = index upto which ith element is the maximum (on the left side)
+
+Rmn[i] = index upto which ith element is the minimum (on the right side)
+Rmx[i] = index upto which ith element is the maximum (on the right side)
+*/
+
+const int N = 1e6 + 6;
+int n;
+int a[N], Lmn[N], Lmx[N], Rmx[N], Rmn[N];
+
+void calculate() {
+	vi A, B;
 	for (int i = 0; i < n; i++) {
-		while (stck.size() && a[i] >= a[stck.back()]) {
-			nextGreater[stck.back()] = i;
-			stck.pop_back();
+		while (!A.empty() and a[A.back()] <= a[i]) {
+			Rmx[A.back()] = i - 1;
+			A.pop_back();
 		}
-		if (stck.empty()) prevGreater[i] = -1;
-		else prevGreater[i] = stck.back();
-		stck.push_back(i);
+		Lmx[i] = A.empty() ? 0 : A.back() + 1;
+		A.push_back(i);
+		while (!B.empty() and a[B.back()] >= a[i]) {
+			Rmn[B.back()] = i - 1;
+			B.pop_back();
+		}
+		Lmn[i] = B.empty() ? 0 : B.back() + 1;
+		B.push_back(i);
 	}
-	// assign prev/nextGreater to some arrays or return one of them as needed
+	while (!A.empty()) {
+		Rmx[A.back()] = n - 1;
+		A.pop_back();
+	}
+	while (!B.empty()) {
+		Rmn[B.back()] = n - 1;
+		B.pop_back();
+	}
 }
