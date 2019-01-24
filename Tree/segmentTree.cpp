@@ -1,157 +1,86 @@
-// with reference to problem ORQUERR on codechef
-// change logic according to question
+/*
+seg tree to find max elem and min elem in a range using lazy prop.
+modify as required
+*/
 
-#include "bits/stdc++.h"
-
-using namespace std;
-
-#define int long long int
-#define all(x) x.begin(), x.end()
-#define pb push_back
-#define mp make_pair
-#define se second
-#define fi first
-
-typedef pair<int, int> pii;
-typedef vector<int> vi;
-typedef vector<vector<int>> matrix;
-
-const int inf = 0x3f3f3f3f;
-const int mod = 1e9 + 7;
-
-inline int add(int x, int y) { x += y; if (x >= mod) x -= mod; return x;}
-inline int sub(int x, int y) { x -= y; if (x < 0) x += mod; return x;}
-inline int mul(int x, int y) { return ((x % mod) * (y % mod)) % mod;}
-inline int power(int a, int b) {
-	int x = 1;
-	while (b) {
-		if (b & 1) x = mul(x, a);
-		a = mul(a, a);
-		b >>= 1;
-	}
-	return x;
-}
-inline int inv(int a) { return power(a, mod - 2);}
+const int inf = 1e18;
 
 const int N = 1e5+5;
-const int MOD = 1e8;
-int seg[26][N],lazy[26][N],a[N];
-int power_2[26];
+int a[N],lazy[4*N],n,m;
 
-void build(int j,int node,int st,int en){
-	lazy[j][node]=-1;
-	if(st==en){
-		int bit = (a[st]&(1<<j))?1:0;
-		seg[j][node]=bit;
-		return;
-	}
-	int mid = (st+en)/2;
-	build(j,2*node,st,mid);
-	build(j,2*node+1,mid+1,en);
-	seg[j][node] = seg[j][2*node] + seg[j][2*node+1];
+struct Node{
+    int mini,maxi;
+};
+Node tree[4*N];
+
+void build(int node,int start,int end){
+    if(start == end){
+        tree[node].maxi = a[start];
+        tree[node].mini = a[start];
+    } else {
+        int mid = (start+end)/2;
+        build(2*node,start,mid);
+        build(2*node+1,mid+1,end);
+        tree[node].maxi = max(tree[2*node].maxi,tree[2*node+1].maxi);
+        tree[node].mini = min(tree[2*node].mini,tree[2*node+1].mini);
+    }
 }
 
-void update(int j,int node,int st,int en,int l,int r,int val){
-	// relaxation
-	if(lazy[j][node]!=-1){
-		seg[j][node] = lazy[j][node]*(en-st+1);
-		if(st!=en){
-			lazy[j][2*node] = lazy[j][node];
-			lazy[j][2*node+1] = lazy[j][node];
-		}
-		lazy[j][node]=-1;
-	}
+void update(int node,int start,int end,int l,int r,int val){
+    if(lazy[node]){
+        tree[node].maxi += lazy[node];
+        tree[node].mini += lazy[node];
+        if(start != end){
+            lazy[2*node]   += lazy[node];
+            lazy[2*node+1] += lazy[node];
+        }
+        lazy[node] = 0;
+    }
 
-	if(en<l or r<st) return;
-	if(l<=st and en<=r){
-		lazy[j][node]=val;
-		seg[j][node] = lazy[j][node]*(en-st+1);
-		if(st!=en){
-			lazy[j][2*node] = lazy[j][node];
-			lazy[j][2*node+1] = lazy[j][node];
-		}
-		lazy[j][node]=-1;
-		return;
-	}
+    if(start > end or start > r or end < l) return;
 
-	int mid = (st+en)/2;
-	update(j,2*node,st,mid,l,r,val);
-	update(j,2*node+1,mid+1,en,l,r,val);
-	seg[j][node] = seg[j][2*node] + seg[j][2*node+1];
+    if(l <= start and r >= end){
+        tree[node].maxi += val;
+        tree[node].mini += val;
+        if(start != end){
+            lazy[2*node]   += val;
+            lazy[2*node+1] += val;
+        }
+        return;
+    }
+
+    int mid = (start+end)/2;
+    update(2*node,start,mid,l,r,val);
+    update(2*node+1,mid+1,end,l,r,val);
+
+    tree[node].maxi = max(tree[2*node].maxi,tree[2*node+1].maxi);
+    tree[node].mini = min(tree[2*node].mini,tree[2*node+1].mini);
 }
 
-int query(int j,int node,int st,int en,int l,int r){
-	// relaxation
-	if(lazy[j][node]!=-1){
-		seg[j][node] = lazy[j][node]*(en-st+1);
-		if(st!=en){
-			lazy[j][2*node] = lazy[j][node];
-			lazy[j][2*node+1] = lazy[j][node];
-		}
-		lazy[j][node]=-1;
-	}
+Node query(int node,int start,int end,int l,int r){
+    Node ret;
+    ret.maxi = -inf; ret.mini = inf;
 
-	if(en<l or st>r) return 0;
-	if(st>=l and en<=r) return seg[j][node];
+    if(start > end or start > r or end < l) return ret;
 
-	int mid = (st+en)/2;
-	int ans = query(j,2*node,st,mid,l,r) + query(j,2*node+1,mid+1,en,l,r);
-	return ans;
-}
+    if(lazy[node]){
+        tree[node].maxi += lazy[node];
+        tree[node].mini += lazy[node];
+        if(start != end){
+            lazy[2*node]   += lazy[node];
+            lazy[2*node+1] += lazy[node];
+        }
+        lazy[node]=0;
+    }
 
-int C(int x,int y){
-	if(x<y) return 0;
-	if(x==y) return 1;
-	if(y==1) return x;
-	if(y==2) return (x*(x-1)/2;
-	if(y==3) return (x)*(x-1)*(x-2)/6;
-}
+    if(l <= start and r >= end) return tree[node];
 
-void pre(){
-	power_2[0]=1LL;
-	for(int i=1;i<25;i++){
-		power_2[i] = (power_2[i-1] * 2);
-		power_2[i] %= MOD;
-	}
-}
+    int mid = (start+end)/2;
+    Node ret1 = query(2*node,start,mid,l,r);
+    Node ret2 = query(2*node+1,mid+1,end,l,r);
 
-#undef int
-int main() {
-#define int long long int
-	ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
-#ifndef ONLINE_JUDGE
-	freopen("input.txt", "r", stdin);
-	freopen("output.txt", "w", stdout);
-#endif
+    ret.maxi = max(ret1.maxi,ret2.maxi);
+    ret.mini = min(ret1.mini,ret2.mini);
 
-	pre();
-	int n; cin>>n;
-	for(int i=0;i<n;i++) cin>>a[i];
-	for(int j=0;j<25;j++) build(j,1,0,n-1);
-
-	int q; cin>>q;
-	while(q--){
-		int type; cin>>type;
-		if(type==1){
-			int l,r,x; cin>>l>>r>>x;
-			l--; r--;
-			for(int j=0;j<25;j++){
-				if(x&(1<<j)) update(j,1,0,n-1,l,r,1);
-				else update(j,1,0,n-1,l,r,0);
-			}
-		} else {
-			int l,r; cin>>l>>r;
-			l--; r--;
-			int ans = 0;
-			for(int j=0;j<25;j++){
-				int o = query(j,1,0,n-1,l,r);
-				int z = (r-l+1) - o;
-				int count = C(o,3)*C(z,0) + C(o,2)*C(z,1) + C(o,1)*C(z,2);
-				ans = ans + count * power_2[j];
-			}
-			cout<<ans<<endl;
-		}
-	}		
-
-	return 0;
+    return ret;
 }
