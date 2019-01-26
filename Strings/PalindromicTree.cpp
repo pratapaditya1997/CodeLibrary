@@ -1,5 +1,5 @@
 /*
-SPOJ - NUMOFPAL
+https://www.codechef.com/problems/KACODE
 modify as needed
 */
 
@@ -38,13 +38,16 @@ inline int inv(int a) { return power(a, mod - 2);}
 const int N = 1e5+5;
 
 string s;
-int nodes=0,suff,n;
+int nodes,suff,n;
 
 struct node{
     int next[26],len,sufflink,height;
 }tree[N];
 
 void initTree(){
+    for(int i=0;i<N;i++) {
+        for(int j=0;j<26;j++) tree[i].next[j]=0;
+    }
     nodes=2; suff=2;
     tree[1].len = -1; tree[1].sufflink = 1;
     tree[2].len =  0; tree[2].sufflink = 1;
@@ -96,16 +99,19 @@ int32_t main() {
 
     clock_t start = clock();
 
-    cin >> s;
-    n = s.length();
+    int t; cin >> t;
+    while(t--){
+        cin >> s;
+        n = s.length();
 
-    initTree();
-    int ans=0;
-    for(int i=0;i<n;i++){
-        addLetter(i);
-        ans += tree[suff].height;
+        initTree();
+        int ans = 0;
+        for(int i=0;i<n;i++){
+            addLetter(i);
+            ans += tree[suff].height;
+        }
+        cout << (nodes-2) << " " << ans << endl;
     }
-    cout << ans << endl;
 
     clock_t end = clock();
     cerr << "Time: " << (double)(end - start) / CLOCKS_PER_SEC << " seconds" << endl;
