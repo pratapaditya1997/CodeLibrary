@@ -1,87 +1,72 @@
 /*
- note to self  - runs on ideone.com 
- not on system compiler due to some stack overflow issue
+for question : https://codeforces.com/contest/1117/problem/D
+solving linear recurrence blog: http://fusharblog.com/solving-linear-recurrence-for-programming-contest/
 */
 
-const ll N=205;
+#include "bits/stdc++.h"
 
-struct matrix{
-    ll B[N][N],n;
-    matrix(){
-        n=N; memset(B,0,sizeof B);
+using namespace std;
+
+#define int long long int
+
+typedef vector<int> vi;
+typedef vector<vector<int>> matrix;
+
+int n,m;
+
+vi mul_vec(vi f,matrix mat){
+    vi res(m,0);
+    for(int i=0;i<m;i++){
+        for(int j=0;j<m;j++){
+            res[i] = add(res[i],mul(mat[i][j],f[j]));
+        }
     }
-    matrix(int _n){
-        n=_n; memset(B,0,sizeof B);
-    }
-    void iden(){
-        for(int i=0;i<n;i++) B[i][i]=1;
-    }
-    void operator += (matrix M){
-        for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
-                B[i][j]+=M.B[i][j];
+    return res;
+}
+
+matrix mul_mat(matrix a, matrix b){
+    matrix c(m,vi (m,0));
+    for(int i=0;i<m;i++){
+        for(int j=0;j<m;j++){
+            for(int k=0;k<m;k++){
+                c[i][j] = add(c[i][j],mul(a[i][k],b[k][j]));
             }
         }
     }
-    void operator -= (matrix M){
-        for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
-                B[i][j]-=M.B[i][j];
-            }
-        }
+    return c;
+}
+
+matrix power_mat(matrix mat,int expo){
+    if(expo == 1) return mat;
+    if(expo&1) return mul_mat(mat,power_mat(mat,expo-1));
+    matrix x = power_mat(mat,expo/2);
+    return mul_mat(x,x);
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
+
+    cin>>n>>m;
+
+    if(m>n){
+        cout << 1 << endl;
+        return 0;
     }
-    void operator *= (ld b){
-        for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
-                B[i][j]=b*B[i][j];
-            }
-        }
+    
+    // construct initial value 'f' vector
+    vi f(m,1);
+    f[m-1]++;
+    
+    // constructing transformation matrix T[m][m] , F_i+1 = T^i * f
+    matrix T(m,vi (m,0));
+    for(int i=0;i<m-1;i++){
+        T[i][i+1]=1;
     }
-    matrix operator - (matrix M){
-        matrix ret =(*this);
-        ret -= M;
-        return ret;
-    }
-    matrix operator + (matrix M){
-        matrix ret = (*this);
-        ret += M;
-        return ret;
-    }
-    matrix operator * (matrix M){
-        matrix ret=matrix(n);
-        memset(ret.B,0,sizeof ret.B);
-        for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
-                for(int k=0;k<n;k++){
-                    ret.B[i][j]+=B[i][k]*M.B[k][j];
-                }
-            }
-        }
-        return ret;
-    }
-    matrix operator *= (matrix M){
-        *this = ((*this)*M);
-    }
-    matrix operator * (int b){
-        matrix ret=(*this);
-        ret *= b;
-        return ret;
-    }
-    matrix power(ll _n){
-        matrix I=matrix(n), A=(*this); I.iden();
-        for(;_n!=0;A*=A,_n>>=1){
-            if(_n & 1) I *= A;
-        }
-        return I;
-    }
-    bool operator == (matrix M){
-        for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
-                if(B[i][j]!=M.B[i][j]){
-                    return 0;
-                }
-            }
-        }
-        return 1;
-    }
-};
+    T[m-1][0]=T[m-1][m-1]=1;
+
+    f = mul_vec(f,power_mat(T,n-1));
+
+    cout << f[0] << endl;
+
+    return 0;
+}
