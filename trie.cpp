@@ -24,3 +24,17 @@ int max_xor_query(int num) {
     }
     return ret;
 }
+
+int min_xor_query(int num) {
+    int ret = 0, node = 0;
+    for(int i=30;i>=0;i--) {
+        int bit = (num >> i) & 1;
+        if(cnt[trie[node][bit]]) {
+            node = trie[node][bit];
+        } else {
+            ret |= (1<<i);
+            node = trie[node][bit^1];
+        }
+    }
+    return ret;
+}
